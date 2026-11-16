@@ -8,6 +8,7 @@ file
 .Sh SYNOPSIS
 .Nm esedbexport
 .Op Fl c Ar codepage
+.Op Fl C Ar column_names
 .Op Fl l Ar log_file
 .Op Fl m Ar mode
 .Op Fl t Ar target
@@ -37,6 +38,10 @@ codepage of ASCII strings, options: ascii, windows-874, windows-932, \
 windows-936, windows-949, windows-950, windows-1250, windows-1251, windows-1252 \
 (default), windows-1253, windows-1254, windows-1255, windows-1256, windows-1257 \
 or windows-1258
+.It Fl C Ar column_names
+comma-separated list of names of the columns to export (default is all \
+columns), the column filter is not applied to tables with a known export \
+format or to indexes
 .It Fl h
 shows this help
 .It Fl l Ar log_file

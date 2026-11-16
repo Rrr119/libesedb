@@ -77,6 +77,22 @@ struct export_handle
 	 */
 	int ascii_codepage;
 
+	/* The names of the columns to export
+	 */
+	system_character_t **column_names;
+
+	/* The number of column names
+	 */
+	int number_of_column_names;
+
+	/* The column flags of the table currently being exported
+	 */
+	uint8_t *table_column_flags;
+
+	/* The number of columns of the table currently being exported
+	 */
+	int number_of_table_columns;
+
 	/* Value to indicate if abort was signalled
 	 */
 	int abort;
@@ -103,6 +119,22 @@ int export_handle_set_ascii_codepage(
      export_handle_t *export_handle,
      const system_character_t *string,
      libcerror_error_t **error );
+
+int export_handle_set_column_names(
+     export_handle_t *export_handle,
+     const system_character_t *column_names,
+     size_t column_names_length,
+     libcerror_error_t **error );
+
+int export_handle_column_name_is_selected(
+     export_handle_t *export_handle,
+     const system_character_t *column_name,
+     size_t column_name_length );
+
+int export_handle_is_known_table_format(
+     int database_type,
+     const system_character_t *table_name,
+     size_t table_name_length );
 
 int export_handle_set_target_path(
      export_handle_t *export_handle,
@@ -192,6 +224,7 @@ int export_handle_export_index(
      libcerror_error_t **error );
 
 int export_handle_export_record(
+     export_handle_t *export_handle,
      libesedb_record_t *record,
      FILE *record_file_stream,
      log_handle_t *log_handle,

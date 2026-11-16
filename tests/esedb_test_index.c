@@ -75,6 +75,87 @@ on_error:
 
 #if defined( __GNUC__ ) && !defined( LIBESEDB_DLL_IMPORT )
 
+/* Tests the libesedb_index_get_number_of_columns function
+ * Returns 1 if successful or 0 if not
+ */
+int esedb_test_index_get_number_of_columns(
+     void )
+{
+	libcerror_error_t *error = NULL;
+	int number_of_columns    = 0;
+	int result               = 0;
+
+	/* Test error cases
+	 */
+	result = libesedb_index_get_number_of_columns(
+	          NULL,
+	          &number_of_columns,
+	          &error );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	ESEDB_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
+/* Tests the libesedb_index_get_column function
+ * Returns 1 if successful or 0 if not
+ */
+int esedb_test_index_get_column(
+     void )
+{
+	libcerror_error_t *error = NULL;
+	libesedb_column_t *column = NULL;
+	int result                = 0;
+
+	/* Test error cases
+	 */
+	result = libesedb_index_get_column(
+	          NULL,
+	          0,
+	          &column,
+	          &error );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	ESEDB_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+	return( 1 );
+
+on_error:
+	if( error != NULL )
+	{
+		libcerror_error_free(
+		 &error );
+	}
+	return( 0 );
+}
+
 #endif /* defined( __GNUC__ ) && !defined( LIBESEDB_DLL_IMPORT ) */
 
 /* The main program
@@ -105,6 +186,14 @@ int main(
 #if defined( __GNUC__ ) && !defined( LIBESEDB_DLL_IMPORT )
 
 	/* TODO: add tests for libesedb_index_get_identifier */
+
+	ESEDB_TEST_RUN(
+	 "libesedb_index_get_number_of_columns",
+	 esedb_test_index_get_number_of_columns );
+
+	ESEDB_TEST_RUN(
+	 "libesedb_index_get_column",
+	 esedb_test_index_get_column );
 
 	/* TODO: add tests for libesedb_index_get_utf8_name_size */
 

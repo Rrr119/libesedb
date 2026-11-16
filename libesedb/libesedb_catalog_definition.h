@@ -99,6 +99,14 @@ struct libesedb_catalog_definition
 	/* The default value size
 	 */
 	size_t default_value_size;
+
+	/* The key (index) column identifiers
+	 */
+	uint16_t *key_column_identifiers;
+
+	/* The number of key (index) column identifiers
+	 */
+	uint16_t number_of_key_column_identifiers;
 };
 
 int libesedb_catalog_definition_initialize(

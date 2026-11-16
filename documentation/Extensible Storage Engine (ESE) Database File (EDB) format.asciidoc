@@ -1684,7 +1684,8 @@ See section: <<lcmapflags,LCMapFlags>>
 | 129 | Stats | Binary | [yellow-background]*Unknown*
 | 130 | TemplateTable | Text | Name of the template 'table'
 | 131 | DefaultValue | Binary | Default value
-| 132 | KeyFldIDs | Binary | [yellow-background]*For the index column identifiers*
+| 132 | KeyFldIDs | Binary | For the index column identifiers +
+See section: <<keyfldids,KeyFldIDs>>
 | 133 | VarSegMac | Binary | [yellow-background]*Unknown*
 | 134 | ConditionalColumns | Binary | [yellow-background]*Unknown*
 | 135 | TupleLimits | Binary | [yellow-background]*Unknown*
@@ -1800,18 +1801,19 @@ Treat punctuation the same as symbols.
 
 ===== KeyFldIDs
 
-[yellow-background]*The KeyFldIDs contain the index column identifiers of the
-primary and secondary keys.*
+The KeyFldIDs contain the index column identifiers of the primary and
+secondary keys.
 
-[yellow-background]*A index column identifier entry is 4 bytes of size and
-consists of:*
+A index column identifier entry is 4 bytes of size and consists of:
 
 [cols="1,1,1,5",options="header"]
 |===
 | Offset | Size | Value | Description
-| 0 | 2 | | [yellow-background]*Unknown*
+| 0 | 2 | | [yellow-background]*Unknown (flags?)*
 | 2 | 2 | | Index column identifier +
-Contains the data type identifier of the column
+Contains the data type identifier of the column +
+The index column identifier is relative to the (template) table column
+definitions of the corresponding table
 |===
 
 ====== Notes

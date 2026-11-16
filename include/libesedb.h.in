@@ -613,6 +613,25 @@ int libesedb_index_get_identifier(
      uint32_t *identifier,
      libesedb_error_t **error );
 
+/* Retrieves the number of columns of the index
+ * Returns 1 if successful or -1 on error
+ */
+LIBESEDB_EXTERN \
+int libesedb_index_get_number_of_columns(
+     libesedb_index_t *index,
+     int *number_of_columns,
+     libesedb_error_t **error );
+
+/* Retrieves the column for the specific entry
+ * Returns 1 if successful or -1 on error
+ */
+LIBESEDB_EXTERN \
+int libesedb_index_get_column(
+     libesedb_index_t *index,
+     int column_entry,
+     libesedb_column_t **column,
+     libesedb_error_t **error );
+
 /* Retrieves the size of the UTF-8 encoded string of the index name
  * The returned size includes the end of string character
  * Returns 1 if successful or -1 on error

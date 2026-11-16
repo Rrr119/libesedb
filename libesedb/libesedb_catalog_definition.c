@@ -165,6 +165,11 @@ int libesedb_catalog_definition_free(
 			memory_free(
 			 ( *catalog_definition )->default_value );
 		}
+		if( ( *catalog_definition )->key_column_identifiers != NULL )
+		{
+			memory_free(
+			 ( *catalog_definition )->key_column_identifiers );
+		}
 		memory_free(
 		 *catalog_definition );
 
@@ -190,6 +195,7 @@ int libesedb_catalog_definition_read_data(
 	size_t variable_size_data_type_value_data_offset    = 0;
 	uint16_t data_type_number                           = 0;
 	uint16_t data_type_size                             = 0;
+	uint16_t key_column_identifier_iterator             = 0;
 	uint16_t previous_variable_size_data_type_size      = 0;
 	uint16_t variable_size_data_type_size               = 0;
 	uint16_t variable_size_data_types_offset            = 0;
@@ -1087,8 +1093,48 @@ int libesedb_catalog_definition_read_data(
 #endif
 					break;
 
-#if defined( HAVE_DEBUG_OUTPUT )
 				case 132:
+					if( data_type_size > 0 )
+					{
+						if( ( data_type_size % 4 ) != 0 )
+						{
+							libcerror_error_set(
+							 error,
+							 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+							 LIBCERROR_RUNTIME_ERROR_VALUE_OUT_OF_BOUNDS,
+							 "%s: invalid key column identifiers data size value out of bounds.",
+							 function );
+
+							return( -1 );
+						}
+						catalog_definition->number_of_key_column_identifiers = (uint16_t) ( data_type_size / 4 );
+
+						catalog_definition->key_column_identifiers = (uint16_t *) memory_allocate(
+						                                                            sizeof( uint16_t ) * catalog_definition->number_of_key_column_identifiers );
+
+						if( catalog_definition->key_column_identifiers == NULL )
+						{
+							libcerror_error_set(
+							 error,
+							 LIBCERROR_ERROR_DOMAIN_MEMORY,
+							 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+							 "%s: unable to create key column identifiers.",
+							 function );
+
+							catalog_definition->number_of_key_column_identifiers = 0;
+
+							return( -1 );
+						}
+						for( key_column_identifier_iterator = 0;
+						     key_column_identifier_iterator < catalog_definition->number_of_key_column_identifiers;
+						     key_column_identifier_iterator++ )
+						{
+							byte_stream_copy_to_uint16_little_endian(
+							 &( variable_size_data_type_value_data[ previous_variable_size_data_type_size + ( key_column_identifier_iterator * 4 ) + 2 ] ),
+							 catalog_definition->key_column_identifiers[ key_column_identifier_iterator ] );
+						}
+					}
+#if defined( HAVE_DEBUG_OUTPUT )
 					if( libcnotify_verbose != 0 )
 					{
 						if( data_type_size > 0 )
@@ -1101,6 +1147,17 @@ int libesedb_catalog_definition_read_data(
 							 &( variable_size_data_type_value_data[ previous_variable_size_data_type_size ] ),
 							 data_type_size,
 							 0 );
+
+							for( key_column_identifier_iterator = 0;
+							     key_column_identifier_iterator < catalog_definition->number_of_key_column_identifiers;
+							     key_column_identifier_iterator++ )
+							{
+								libcnotify_printf(
+								 "%s: (%03" PRIu8 ") key column identifier\t\t\t: %" PRIu16 "\n",
+								 function,
+								 data_type_number,
+								 catalog_definition->key_column_identifiers[ key_column_identifier_iterator ] );
+							}
 						}
 						else
 						{
@@ -1110,8 +1167,10 @@ int libesedb_catalog_definition_read_data(
 							 data_type_number );
 						}
 					}
+#endif
 					break;
 
+#if defined( HAVE_DEBUG_OUTPUT )
 				case 133:
 					if( libcnotify_verbose != 0 )
 					{

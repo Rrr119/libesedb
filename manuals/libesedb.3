@@ -481,6 +481,23 @@ Index functions
 .fi
 .nf
 .Ft int
+.Fo libesedb_index_get_number_of_columns
+.Fa "libesedb_index_t *index"
+.Fa "int *number_of_columns"
+.Fa "libesedb_error_t **error"
+.Fc
+.fi
+.nf
+.Ft int
+.Fo libesedb_index_get_column
+.Fa "libesedb_index_t *index"
+.Fa "int column_entry"
+.Fa "libesedb_column_t **column"
+.Fa "libesedb_error_t **error"
+.Fc
+.fi
+.nf
+.Ft int
 .Fo libesedb_index_get_utf8_name_size
 .Fa "libesedb_index_t *index"
 .Fa "size_t *utf8_string_size"

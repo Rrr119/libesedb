@@ -54,6 +54,14 @@ uint8_t esedb_test_catalog_definition_data2[ 97 ] = {
 	0x6c, 0x75, 0x65, 0x73, 0x00, 0x01, 0x04, 0x00, 0x01, 0x26, 0x02, 0x00, 0x00, 0x0c, 0x00, 0x00,
 	0x00 };
 
+/* Catalog definition: TestIndex with key column identifiers (KeyFldIDs)
+ */
+uint8_t esedb_test_catalog_definition_data3[ 62 ] = {
+	0x07, 0x84, 0x1f, 0x00, 0x03, 0x00, 0x00, 0x00, 0x02, 0x00, 0x2c, 0x01, 0x00, 0x00, 0x05, 0x00,
+	0x00, 0x00, 0x50, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x09,
+	0x00, 0x09, 0x80, 0x09, 0x80, 0x09, 0x80, 0x15, 0x00, 0x54, 0x65, 0x73, 0x74, 0x49, 0x6e, 0x64,
+	0x65, 0x78, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x80, 0x00 };
+
 #if defined( __GNUC__ ) && !defined( LIBESEDB_DLL_IMPORT )
 
 /* Tests the libesedb_catalog_definition_initialize function
@@ -614,6 +622,136 @@ int esedb_test_catalog_definition_read_data(
 
 	libcerror_error_free(
 	 &error );
+
+	/* Test an index catalog definition with key column identifiers (KeyFldIDs)
+	 */
+	result = libesedb_catalog_definition_free(
+	          &catalog_definition,
+	          &error );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	ESEDB_TEST_ASSERT_IS_NULL(
+	 "catalog_definition",
+	 catalog_definition );
+
+	ESEDB_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libesedb_catalog_definition_initialize(
+	          &catalog_definition,
+	          &error );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	ESEDB_TEST_ASSERT_IS_NOT_NULL(
+	 "catalog_definition",
+	 catalog_definition );
+
+	ESEDB_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	result = libesedb_catalog_definition_read_data(
+	          catalog_definition,
+	          esedb_test_catalog_definition_data3,
+	          62,
+	          LIBESEDB_CODEPAGE_WINDOWS_1252,
+	          &error );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 1 );
+
+	ESEDB_TEST_ASSERT_IS_NULL(
+	 "error",
+	 error );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "catalog_definition->number_of_key_column_identifiers",
+	 (int) catalog_definition->number_of_key_column_identifiers,
+	 3 );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "catalog_definition->key_column_identifiers[ 0 ]",
+	 (int) catalog_definition->key_column_identifiers[ 0 ],
+	 1 );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "catalog_definition->key_column_identifiers[ 1 ]",
+	 (int) catalog_definition->key_column_identifiers[ 1 ],
+	 2 );
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "catalog_definition->key_column_identifiers[ 2 ]",
+	 (int) catalog_definition->key_column_identifiers[ 2 ],
+	 128 );
+
+	/* Test with invalid key column identifiers data size
+	 */
+	esedb_test_catalog_definition_data3[ 39 ] = 0x14;
+
+	result = libesedb_catalog_definition_read_data(
+	          catalog_definition,
+	          esedb_test_catalog_definition_data3,
+	          62,
+	          LIBESEDB_CODEPAGE_WINDOWS_1252,
+	          &error );
+
+	esedb_test_catalog_definition_data3[ 39 ] = 0x15;
+
+	ESEDB_TEST_ASSERT_EQUAL_INT(
+	 "result",
+	 result,
+	 -1 );
+
+	ESEDB_TEST_ASSERT_IS_NOT_NULL(
+	 "error",
+	 error );
+
+	libcerror_error_free(
+	 &error );
+
+#if defined( HAVE_ESEDB_TEST_MEMORY )
+
+	/* Test libesedb_catalog_definition_read_data with malloc failing for creation of key_column_identifiers
+	 */
+	esedb_test_malloc_attempts_before_fail = 1;
+
+	result = libesedb_catalog_definition_read_data(
+	          catalog_definition,
+	          esedb_test_catalog_definition_data3,
+	          62,
+	          LIBESEDB_CODEPAGE_WINDOWS_1252,
+	          &error );
+
+	if( esedb_test_malloc_attempts_before_fail != -1 )
+	{
+		esedb_test_malloc_attempts_before_fail = -1;
+	}
+	else
+	{
+		ESEDB_TEST_ASSERT_EQUAL_INT(
+		 "result",
+		 result,
+		 -1 );
+
+		ESEDB_TEST_ASSERT_IS_NOT_NULL(
+		 "error",
+		 error );
+
+		libcerror_error_free(
+		 &error );
+	}
+#endif /* defined( HAVE_ESEDB_TEST_MEMORY ) */
 
 	/* Clean up
 	 */

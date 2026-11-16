@@ -147,6 +147,7 @@ int export_handle_free(
 {
 	static char *function = "export_handle_free";
 	int result            = 1;
+	int column_name_index = 0;
 
 	if( export_handle == NULL )
 	{
@@ -183,6 +184,26 @@ int export_handle_free(
 		{
 			memory_free(
 			 ( *export_handle )->items_export_path );
+		}
+		if( ( *export_handle )->column_names != NULL )
+		{
+			for( column_name_index = 0;
+			     column_name_index < ( *export_handle )->number_of_column_names;
+			     column_name_index++ )
+			{
+				if( ( *export_handle )->column_names[ column_name_index ] != NULL )
+				{
+					memory_free(
+					 ( *export_handle )->column_names[ column_name_index ] );
+				}
+			}
+			memory_free(
+			 ( *export_handle )->column_names );
+		}
+		if( ( *export_handle )->table_column_flags != NULL )
+		{
+			memory_free(
+			 ( *export_handle )->table_column_flags );
 		}
 		memory_free(
 		 *export_handle );
@@ -338,6 +359,387 @@ int export_handle_set_ascii_codepage(
 		return( -1 );
 	}
 	return( result );
+}
+
+/* Sets the names of the columns to export
+ * The column names are expected as a single comma-separated string
+ * Returns 1 if successful or -1 on error
+ */
+int export_handle_set_column_names(
+     export_handle_t *export_handle,
+     const system_character_t *column_names,
+     size_t column_names_length,
+     libcerror_error_t **error )
+{
+	system_character_t *column_name = NULL;
+	static char *function           = "export_handle_set_column_names";
+	size_t column_name_size         = 0;
+	size_t segment_start            = 0;
+	size_t segment_length           = 0;
+	size_t string_index             = 0;
+	int column_name_index           = 0;
+	int number_of_column_names      = 0;
+
+	if( export_handle == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid export handle.",
+		 function );
+
+		return( -1 );
+	}
+	if( column_names == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid column names.",
+		 function );
+
+		return( -1 );
+	}
+	if( export_handle->column_names != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid export handle - column names value already set.",
+		 function );
+
+		return( -1 );
+	}
+	if( column_names_length == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid column names length.",
+		 function );
+
+		return( -1 );
+	}
+	/* Determine the number of comma-separated segments
+	 */
+	number_of_column_names = 1;
+
+	for( string_index = 0;
+	     string_index < column_names_length;
+	     string_index++ )
+	{
+		if( column_names[ string_index ] == (system_character_t) ',' )
+		{
+			number_of_column_names++;
+		}
+	}
+	export_handle->column_names = (system_character_t **) memory_allocate(
+	                                                         sizeof( system_character_t * ) * number_of_column_names );
+
+	if( export_handle->column_names == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+		 "%s: unable to create column names.",
+		 function );
+
+		goto on_error;
+	}
+	if( memory_set(
+	     export_handle->column_names,
+	     0,
+	     sizeof( system_character_t * ) * number_of_column_names ) == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_MEMORY,
+		 LIBCERROR_MEMORY_ERROR_SET_FAILED,
+		 "%s: unable to clear column names.",
+		 function );
+
+		goto on_error;
+	}
+	for( string_index = 0;
+	     string_index <= column_names_length;
+	     string_index++ )
+	{
+		if( ( string_index == column_names_length )
+		 || ( column_names[ string_index ] == (system_character_t) ',' ) )
+		{
+			segment_length = string_index - segment_start;
+
+			if( segment_length == 0 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+				 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+				 "%s: invalid column names - empty column name.",
+				 function );
+
+				goto on_error;
+			}
+			column_name_size = segment_length + 1;
+
+			column_name = system_string_allocate(
+			               column_name_size );
+
+			if( column_name == NULL )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_MEMORY,
+				 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+				 "%s: unable to create column name: %d.",
+				 function,
+				 column_name_index );
+
+				goto on_error;
+			}
+			if( system_string_copy(
+			     column_name,
+			     &( column_names[ segment_start ] ),
+			     segment_length ) == NULL )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_MEMORY,
+				 LIBCERROR_MEMORY_ERROR_COPY_FAILED,
+				 "%s: unable to copy column name: %d.",
+				 function,
+				 column_name_index );
+
+				memory_free(
+				 column_name );
+
+				goto on_error;
+			}
+			column_name[ segment_length ] = 0;
+
+			export_handle->column_names[ column_name_index ] = column_name;
+
+			column_name_index++;
+			segment_start = string_index + 1;
+		}
+	}
+	export_handle->number_of_column_names = number_of_column_names;
+
+	return( 1 );
+
+on_error:
+	if( export_handle->column_names != NULL )
+	{
+		for( column_name_index = 0;
+		     column_name_index < number_of_column_names;
+		     column_name_index++ )
+		{
+			if( export_handle->column_names[ column_name_index ] != NULL )
+			{
+				memory_free(
+				 export_handle->column_names[ column_name_index ] );
+			}
+		}
+		memory_free(
+		 export_handle->column_names );
+
+		export_handle->column_names = NULL;
+	}
+	return( -1 );
+}
+
+/* Determines if a column name is selected for export
+ * Returns 1 if the column is selected or 0 if not
+ */
+int export_handle_column_name_is_selected(
+     export_handle_t *export_handle,
+     const system_character_t *column_name,
+     size_t column_name_length )
+{
+	int column_name_index = 0;
+
+	if( export_handle == NULL )
+	{
+		return( 1 );
+	}
+	if( export_handle->number_of_column_names == 0 )
+	{
+		return( 1 );
+	}
+	if( column_name == NULL )
+	{
+		return( 0 );
+	}
+	for( column_name_index = 0;
+	     column_name_index < export_handle->number_of_column_names;
+	     column_name_index++ )
+	{
+		if( system_string_compare_no_case(
+		     column_name,
+		     export_handle->column_names[ column_name_index ],
+		     column_name_length + 1 ) == 0 )
+		{
+			return( 1 );
+		}
+	}
+	return( 0 );
+}
+
+/* Determines if a table has a known (database type specific) export format
+ * Returns 1 if the table format is known or 0 if not
+ */
+int export_handle_is_known_table_format(
+     int database_type,
+     const system_character_t *table_name,
+     size_t table_name_length )
+{
+	if( table_name == NULL )
+	{
+		return( 0 );
+	}
+	switch( database_type )
+	{
+		case DATABASE_TYPE_EXCHANGE:
+			if( table_name_length == 3 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "Msg" ),
+				     3 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			else if( table_name_length == 6 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "Global" ),
+				     6 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			else if( table_name_length == 7 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "Folders" ),
+				     7 ) == 0 )
+				{
+					return( 1 );
+				}
+				else if( system_string_compare(
+					  table_name,
+					  _SYSTEM_STRING( "Mailbox" ),
+					  7 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			else if( table_name_length == 11 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "PerUserRead" ),
+				     11 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			break;
+
+		case DATABASE_TYPE_SRUM:
+			if( table_name_length == 38 )
+			{
+				if( ( table_name[ 0 ] == '{' )
+				 && ( table_name[ 9 ] == '-' )
+				 && ( table_name[ 14 ] == '-' )
+				 && ( table_name[ 19 ] == '-' )
+				 && ( table_name[ 24 ] == '-' )
+				 && ( table_name[ 37 ] == '}' ) )
+				{
+					return( 1 );
+				}
+			}
+			break;
+
+		case DATABASE_TYPE_WEBCACHE:
+			if( table_name_length == 10 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "Containers" ),
+				     10 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			if( table_name_length >= 10 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "Container_" ),
+				     10 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			break;
+
+		case DATABASE_TYPE_WINDOWS_SEARCH:
+			if( table_name_length == 14 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "SystemIndex_0A" ),
+				     14 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			else if( table_name_length == 16 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "SystemIndex_Gthr" ),
+				     16 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			break;
+
+		case DATABASE_TYPE_WINDOWS_SECURITY:
+			if( table_name_length == 12 )
+			{
+				if( system_string_compare(
+				     table_name,
+				     _SYSTEM_STRING( "SmTblSection" ),
+				     12 ) == 0 )
+				{
+					return( 1 );
+				}
+				else if( system_string_compare(
+					  table_name,
+					  _SYSTEM_STRING( "SmTblVersion" ),
+					  12 ) == 0 )
+				{
+					return( 1 );
+				}
+			}
+			break;
+
+		case DATABASE_TYPE_UNKNOWN:
+		default:
+			break;
+	}
+	return( 0 );
 }
 
 /* Sets the target path
@@ -1135,8 +1537,10 @@ int export_handle_export_table(
 	static char *function             = "export_handle_export_table";
 	size_t item_filename_size         = 0;
 	size_t value_string_size          = 0;
+	int apply_column_filter           = 0;
 	int column_iterator               = 0;
 	int known_table                   = 0;
+	int number_of_exported_columns    = 0;
 	int number_of_columns             = 0;
 	int number_of_records             = 0;
 	int record_iterator               = 0;
@@ -1236,6 +1640,57 @@ int export_handle_export_table(
 
 		goto on_error;
 	}
+	/* Determine which columns to export
+	 */
+	if( number_of_columns > 0 )
+	{
+		export_handle->table_column_flags = (uint8_t *) memory_allocate(
+		                                                 sizeof( uint8_t ) * number_of_columns );
+
+		if( export_handle->table_column_flags == NULL )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_MEMORY,
+			 LIBCERROR_MEMORY_ERROR_INSUFFICIENT,
+			 "%s: unable to create table column flags.",
+			 function );
+
+			goto on_error;
+		}
+		if( memory_set(
+		     export_handle->table_column_flags,
+		     1,
+		     sizeof( uint8_t ) * number_of_columns ) == NULL )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_MEMORY,
+			 LIBCERROR_MEMORY_ERROR_SET_FAILED,
+			 "%s: unable to clear table column flags.",
+			 function );
+
+			goto on_error;
+		}
+		export_handle->number_of_table_columns = number_of_columns;
+	}
+	if( export_handle->number_of_column_names > 0 )
+	{
+		if( export_handle_is_known_table_format(
+		     database_type,
+		     table_name,
+		     table_name_length ) != 0 )
+		{
+			log_handle_printf(
+			 log_handle,
+			 "Column filter not applied to table: %" PRIs_SYSTEM " with a known export format.\n",
+			 table_name );
+		}
+		else
+		{
+			apply_column_filter = 1;
+		}
+	}
 	for( column_iterator = 0;
 	     column_iterator < number_of_columns;
 	     column_iterator++ )
@@ -1328,10 +1783,31 @@ int export_handle_export_table(
 
 			goto on_error;
 		}
-		fprintf(
-		 table_file_stream,
-		 "%" PRIs_SYSTEM "",
-		 value_string );
+		if( apply_column_filter != 0 )
+		{
+			if( export_handle_column_name_is_selected(
+			     export_handle,
+			     value_string,
+			     value_string_size - 1 ) == 0 )
+			{
+				export_handle->table_column_flags[ column_iterator ] = 0;
+			}
+		}
+		if( export_handle->table_column_flags[ column_iterator ] != 0 )
+		{
+			if( number_of_exported_columns > 0 )
+			{
+				fprintf(
+				 table_file_stream,
+				 "\t" );
+			}
+			fprintf(
+			 table_file_stream,
+			 "%" PRIs_SYSTEM "",
+			 value_string );
+
+			number_of_exported_columns++;
+		}
 
 		memory_free(
 		 value_string );
@@ -1351,18 +1827,19 @@ int export_handle_export_table(
 
 			goto on_error;
 		}
-		if( column_iterator == ( number_of_columns - 1 ) )
-		{
-			fprintf(
-			 table_file_stream,
-			 "\n" );
-		}
-		else
-		{
-			fprintf(
-			 table_file_stream,
-			 "\t" );
-		}
+	}
+	if( number_of_exported_columns > 0 )
+	{
+		fprintf(
+		 table_file_stream,
+		 "\n" );
+	}
+	else if( apply_column_filter != 0 )
+	{
+		log_handle_printf(
+		 log_handle,
+		 "No columns of table: %" PRIs_SYSTEM " matched the column filter.\n",
+		 table_name );
 	}
 	/* Write the record (row) values to the table file
 	 */
@@ -1616,6 +2093,7 @@ int export_handle_export_table(
 		if( known_table == 0 )
 		{
 			result = export_handle_export_record(
+			          export_handle,
 			          record,
 			          table_file_stream,
 			          log_handle,
@@ -1650,6 +2128,15 @@ int export_handle_export_table(
 			break;
 		}
 	}
+	if( export_handle->table_column_flags != NULL )
+	{
+		memory_free(
+		 export_handle->table_column_flags );
+
+		export_handle->table_column_flags = NULL;
+	}
+	export_handle->number_of_table_columns = 0;
+
 	result = file_stream_close(
 	          table_file_stream );
 
@@ -1694,6 +2181,15 @@ int export_handle_export_table(
 	return( 1 );
 
 on_error:
+	if( export_handle->table_column_flags != NULL )
+	{
+		memory_free(
+		 export_handle->table_column_flags );
+
+		export_handle->table_column_flags = NULL;
+	}
+	export_handle->number_of_table_columns = 0;
+
 	if( record != NULL )
 	{
 		libesedb_record_free(
@@ -2092,8 +2588,13 @@ int export_handle_export_index(
 	libesedb_record_t *record         = NULL;
 	FILE *index_file_stream           = NULL;
 	static char *function             = "export_handle_export_index";
+	system_character_t *value_string  = NULL;
+	libesedb_column_t *column         = NULL;
+	size_t value_string_size          = 0;
+	int column_iterator               = 0;
 	int known_index                   = 0;
 	size_t item_filename_size         = 0;
+	int number_of_columns             = 0;
 	int number_of_records             = 0;
 	int record_iterator               = 0;
 	int result                        = 0;
@@ -2175,13 +2676,11 @@ int export_handle_export_index(
 
 	item_filename = NULL;
 
-#ifdef TODO
 	/* Write the column names to the index file
 	 */
 	if( libesedb_index_get_number_of_columns(
 	     index,
 	     &number_of_columns,
-	     0,
 	     error ) != 1 )
 	{
 		libcerror_error_set(
@@ -2201,7 +2700,6 @@ int export_handle_export_index(
 		     index,
 		     column_iterator,
 		     &column,
-		     0,
 		     error ) != 1 )
 		{
 			libcerror_error_set(
@@ -2321,8 +2819,6 @@ int export_handle_export_index(
 			 "\t" );
 		}
 	}
-#endif /* TODO */
-
 	/* Write the record (row) values to the index file
 	 */
 	if( libesedb_index_get_number_of_records(
@@ -2364,6 +2860,7 @@ int export_handle_export_index(
 		if( known_index == 0 )
 		{
 			result = export_handle_export_record(
+			          export_handle,
 			          record,
 			          index_file_stream,
 			          log_handle,
@@ -2419,7 +2916,6 @@ on_error:
 		 &record,
 		 NULL );
 	}
-#ifdef TODO
 	if( value_string != NULL )
 	{
 		memory_free(
@@ -2431,7 +2927,6 @@ on_error:
 		 &column,
 		 NULL );
 	}
-#endif
 	if( index_file_stream != NULL )
 	{
 		file_stream_close(
@@ -2449,14 +2944,16 @@ on_error:
  * Returns 1 if successful or -1 on error
  */
 int export_handle_export_record(
+     export_handle_t *export_handle,
      libesedb_record_t *record,
      FILE *record_file_stream,
      log_handle_t *log_handle,
      libcerror_error_t **error )
 {
-	static char *function = "export_handle_export_record";
-	int number_of_values  = 0;
-	int value_iterator    = 0;
+	static char *function        = "export_handle_export_record";
+	int number_of_exported_values = 0;
+	int number_of_values         = 0;
+	int value_iterator           = 0;
 
 	if( record == NULL )
 	{
@@ -2498,6 +2995,19 @@ int export_handle_export_record(
 	     value_iterator < number_of_values;
 	     value_iterator++ )
 	{
+		if( ( export_handle != NULL )
+		 && ( export_handle->table_column_flags != NULL )
+		 && ( value_iterator < export_handle->number_of_table_columns )
+		 && ( export_handle->table_column_flags[ value_iterator ] == 0 ) )
+		{
+			continue;
+		}
+		if( number_of_exported_values > 0 )
+		{
+			fprintf(
+			 record_file_stream,
+			 "\t" );
+		}
 		if( export_handle_export_record_value(
 		     record,
 		     value_iterator,
@@ -2515,18 +3025,13 @@ int export_handle_export_record(
 
 			return( -1 );
 		}
-		if( value_iterator == ( number_of_values - 1 ) )
-		{
-			fprintf(
-			 record_file_stream,
-			 "\n" );
-		}
-		else
-		{
-			fprintf(
-			 record_file_stream,
-			 "\t" );
-		}
+		number_of_exported_values++;
+	}
+	if( number_of_exported_values > 0 )
+	{
+		fprintf(
+		 record_file_stream,
+		 "\n" );
 	}
 	return( 1 );
 }

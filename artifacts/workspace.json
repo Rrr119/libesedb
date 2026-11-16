@@ -1,0 +1,17 @@
+{
+  "root": "/home/dev/feedback/uid22478",
+  "B": "/home/dev/feedback/uid22478",
+  "sha": "bd12fbe75d31005a4180688f0b49400445b321fb",
+  "wslDistro": "Ubuntu-26.04",
+  "source": {
+    "owner": "libyal",
+    "repo": "libesedb",
+    "sha": "bd12fbe75d31005a4180688f0b49400445b321fb"
+  },
+  "fork": {
+    "owner": "Rrr119",
+    "repo": "libesedb",
+    "cloneUrl": "https://github.com/Rrr119/libesedb.git"
+  },
+  "at": "2026-11-16T06:25:14.123Z"
+}

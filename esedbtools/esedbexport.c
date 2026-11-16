@@ -113,6 +113,7 @@ int main( int argc, char * const argv[] )
 
 	esedbtools_option_t options[ ] = {
 		{ 'c', "codepage", "codepage of ASCII strings, options: ascii, windows-874, windows-932, windows-936, windows-949, windows-950, windows-1250, windows-1251, windows-1252 (default), windows-1253, windows-1254, windows-1255, windows-1256, windows-1257 or windows-1258" },
+		{ 'C', "column_names", "comma-separated list of names of the columns to export (default is all columns), the column filter is not applied to tables with a known export format or to indexes" },
 		{ 'h', NULL, "shows this help" },
 		{ 'l', "log_file", "logs information about the exported items" },
 		{ 'm', "mode", "export mode, option: all, tables (default). 'all' exports all the tables or a single specified table with indexes, 'tables' exports all the tables or a single specified table" },
@@ -126,6 +127,7 @@ int main( int argc, char * const argv[] )
 
 	system_character_t *log_filename          = NULL;
 	system_character_t *option_ascii_codepage = NULL;
+	system_character_t *option_column_names   = NULL;
 	system_character_t *option_export_mode    = NULL;
 	system_character_t *option_table_name     = NULL;
 	system_character_t *option_target_path    = NULL;
@@ -213,6 +215,11 @@ int main( int argc, char * const argv[] )
 
 			case (system_integer_t) 'c':
 				option_ascii_codepage = optarg;
+
+				break;
+
+			case (system_integer_t) 'C':
+				option_column_names = optarg;
 
 				break;
 
@@ -373,6 +380,22 @@ int main( int argc, char * const argv[] )
 			fprintf(
 			 stderr,
 			 "Unsupported ASCII codepage defaulting to: windows-1252.\n" );
+		}
+	}
+	if( option_column_names != NULL )
+	{
+		if( export_handle_set_column_names(
+		     esedbexport_export_handle,
+		     option_column_names,
+		     system_string_length(
+		      option_column_names ),
+		     &error ) != 1 )
+		{
+			fprintf(
+			 stderr,
+			 "Unable to set column names in export handle.\n" );
+
+			goto on_error;
 		}
 	}
 	if( export_handle_set_target_path(

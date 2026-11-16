@@ -24,6 +24,7 @@
 #include <types.h>
 
 #include "libesedb_catalog_definition.h"
+#include "libesedb_column.h"
 #include "libesedb_data_definition.h"
 #include "libesedb_definitions.h"
 #include "libesedb_io_handle.h"
@@ -266,6 +267,255 @@ int libesedb_index_get_identifier(
 		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
 		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
 		 "%s: unable to retrieve catalog definition identifier.",
+		 function );
+
+		return( -1 );
+	}
+	return( 1 );
+}
+
+/* Retrieves the column catalog definition for a specific column identifier
+ * Returns 1 if successful, 0 if no such column catalog definition or -1 on error
+ */
+int libesedb_index_get_column_catalog_definition_by_identifier(
+     libesedb_internal_index_t *internal_index,
+     uint16_t column_identifier,
+     libesedb_catalog_definition_t **column_catalog_definition,
+     libcerror_error_t **error )
+{
+	libesedb_table_definition_t *table_definition = NULL;
+	static char *function                         = "libesedb_index_get_column_catalog_definition_by_identifier";
+	int definition_index                          = 0;
+	int number_of_definitions                     = 0;
+	int table_definition_iterator                 = 0;
+
+	if( internal_index == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid index.",
+		 function );
+
+		return( -1 );
+	}
+	if( column_catalog_definition == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid column catalog definition.",
+		 function );
+
+		return( -1 );
+	}
+	for( table_definition_iterator = 0;
+	     table_definition_iterator < 2;
+	     table_definition_iterator++ )
+	{
+		if( table_definition_iterator == 0 )
+		{
+			table_definition = internal_index->template_table_definition;
+		}
+		else
+		{
+			table_definition = internal_index->table_definition;
+		}
+		if( table_definition == NULL )
+		{
+			continue;
+		}
+		if( libesedb_table_definition_get_number_of_column_catalog_definitions(
+		     table_definition,
+		     &number_of_definitions,
+		     error ) != 1 )
+		{
+			libcerror_error_set(
+			 error,
+			 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+			 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+			 "%s: unable to retrieve number of column catalog definitions.",
+			 function );
+
+			return( -1 );
+		}
+		for( definition_index = 0;
+		     definition_index < number_of_definitions;
+		     definition_index++ )
+		{
+			if( libesedb_table_definition_get_column_catalog_definition_by_index(
+			     table_definition,
+			     definition_index,
+			     column_catalog_definition,
+			     error ) != 1 )
+			{
+				libcerror_error_set(
+				 error,
+				 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+				 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+				 "%s: unable to retrieve column catalog definition: %d.",
+				 function,
+				 definition_index );
+
+				return( -1 );
+			}
+			if( ( *column_catalog_definition )->identifier == (uint32_t) column_identifier )
+			{
+				return( 1 );
+			}
+		}
+	}
+	*column_catalog_definition = NULL;
+
+	return( 0 );
+}
+
+/* Retrieves the number of columns of the index
+ * Returns 1 if successful or -1 on error
+ */
+int libesedb_index_get_number_of_columns(
+     libesedb_index_t *index,
+     int *number_of_columns,
+     libcerror_error_t **error )
+{
+	libesedb_internal_index_t *internal_index = NULL;
+	static char *function                     = "libesedb_index_get_number_of_columns";
+
+	if( index == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid index.",
+		 function );
+
+		return( -1 );
+	}
+	internal_index = (libesedb_internal_index_t *) index;
+
+	if( number_of_columns == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid number of columns.",
+		 function );
+
+		return( -1 );
+	}
+	*number_of_columns = (int) internal_index->index_catalog_definition->number_of_key_column_identifiers;
+
+	return( 1 );
+}
+
+/* Retrieves a specific column of the index
+ * Returns 1 if successful or -1 on error
+ */
+int libesedb_index_get_column(
+     libesedb_index_t *index,
+     int column_entry,
+     libesedb_column_t **column,
+     libcerror_error_t **error )
+{
+	libesedb_catalog_definition_t *column_catalog_definition = NULL;
+	libesedb_internal_index_t *internal_index                = NULL;
+	static char *function                                    = "libesedb_index_get_column";
+	uint16_t column_identifier                               = 0;
+	int result                                               = 0;
+
+	if( index == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid index.",
+		 function );
+
+		return( -1 );
+	}
+	internal_index = (libesedb_internal_index_t *) index;
+
+	if( column == NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_INVALID_VALUE,
+		 "%s: invalid column.",
+		 function );
+
+		return( -1 );
+	}
+	if( *column != NULL )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_ALREADY_SET,
+		 "%s: invalid column value already set.",
+		 function );
+
+		return( -1 );
+	}
+	if( ( column_entry < 0 )
+	 || ( column_entry >= (int) internal_index->index_catalog_definition->number_of_key_column_identifiers ) )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_ARGUMENTS,
+		 LIBCERROR_ARGUMENT_ERROR_VALUE_OUT_OF_BOUNDS,
+		 "%s: invalid column entry value out of bounds.",
+		 function );
+
+		return( -1 );
+	}
+	column_identifier = internal_index->index_catalog_definition->key_column_identifiers[ column_entry ];
+
+	result = libesedb_index_get_column_catalog_definition_by_identifier(
+	          internal_index,
+	          column_identifier,
+	          &column_catalog_definition,
+	          error );
+
+	if( result == -1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_GET_FAILED,
+		 "%s: unable to retrieve column catalog definition by identifier.",
+		 function );
+
+		return( -1 );
+	}
+	else if( result == 0 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_VALUE_MISSING,
+		 "%s: missing column catalog definition for identifier: %" PRIu16 ".",
+		 function,
+		 column_identifier );
+
+		return( -1 );
+	}
+	if( libesedb_column_initialize(
+	     column,
+	     internal_index->io_handle,
+	     column_catalog_definition,
+	     error ) != 1 )
+	{
+		libcerror_error_set(
+		 error,
+		 LIBCERROR_ERROR_DOMAIN_RUNTIME,
+		 LIBCERROR_RUNTIME_ERROR_INITIALIZE_FAILED,
+		 "%s: unable to create column.",
 		 function );
 
 		return( -1 );

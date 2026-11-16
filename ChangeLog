@@ -1,3 +1,10 @@
+2026-11-16
+* libesedb_catalog_definition: parse index key column identifiers (KeyFldIDs)
+* libesedb_index: added libesedb_index_get_number_of_columns and
+  libesedb_index_get_column
+* esedbexport: write column names header to index exports
+* esedbexport: added -C option to filter exported columns by name
+
 TODO
 * add LZXPRESSED compressed string to compression test
 * add leaf value (data definition) cache?

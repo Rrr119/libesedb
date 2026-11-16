@@ -120,6 +120,19 @@ int libesedb_index_get_identifier(
      libcerror_error_t **error );
 
 LIBESEDB_EXTERN \
+int libesedb_index_get_number_of_columns(
+     libesedb_index_t *index,
+     int *number_of_columns,
+     libcerror_error_t **error );
+
+LIBESEDB_EXTERN \
+int libesedb_index_get_column(
+     libesedb_index_t *index,
+     int column_entry,
+     libesedb_column_t **column,
+     libcerror_error_t **error );
+
+LIBESEDB_EXTERN \
 int libesedb_index_get_utf8_name_size(
      libesedb_index_t *index,
      size_t *utf8_string_size,

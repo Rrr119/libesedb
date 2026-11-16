@@ -72,6 +72,7 @@ check_PROGRAMS = \
 	esedb_test_support \
 	esedb_test_table \
 	esedb_test_table_definition \
+	esedb_test_tools_export_handle \
 	esedb_test_tools_info_handle \
 	esedb_test_tools_output \
 	esedb_test_tools_signal \
@@ -557,6 +558,41 @@ esedb_test_table_definition_SOURCES = \
 esedb_test_table_definition_LDADD = \
 	../libesedb/libesedb.la \
 	@LIBCERROR_LIBADD@
+
+esedb_test_tools_export_handle_SOURCES = \
+	../esedbtools/database_types.c ../esedbtools/database_types.h \
+	../esedbtools/esedbtools_system_string.c ../esedbtools/esedbtools_system_string.h \
+	../esedbtools/exchange.c ../esedbtools/exchange.h \
+	../esedbtools/export.c ../esedbtools/export.h \
+	../esedbtools/export_handle.c ../esedbtools/export_handle.h \
+	../esedbtools/log_handle.c ../esedbtools/log_handle.h \
+	../esedbtools/srumdb.c ../esedbtools/srumdb.h \
+	../esedbtools/webcache.c ../esedbtools/webcache.h \
+	../esedbtools/windows_search.c ../esedbtools/windows_search.h \
+	../esedbtools/windows_search_compression.c ../esedbtools/windows_search_compression.h \
+	../esedbtools/windows_security.c ../esedbtools/windows_security.h \
+	esedb_test_libcerror.h \
+	esedb_test_macros.h \
+	esedb_test_memory.c esedb_test_memory.h \
+	esedb_test_tools_export_handle.c \
+	esedb_test_unused.h
+
+esedb_test_tools_export_handle_LDADD = \
+	@LIBFMAPI_LIBADD@ \
+	@LIBFVALUE_LIBADD@ \
+	@LIBFWNT_LIBADD@ \
+	@LIBFGUID_LIBADD@ \
+	@LIBFDATETIME_LIBADD@ \
+	@LIBCFILE_LIBADD@ \
+	@LIBCPATH_LIBADD@ \
+	@LIBUNA_LIBADD@ \
+	@LIBCSPLIT_LIBADD@ \
+	@LIBCNOTIFY_LIBADD@ \
+	@LIBCLOCALE_LIBADD@ \
+	@LIBCDATA_LIBADD@ \
+	../libesedb/libesedb.la \
+	@LIBCERROR_LIBADD@ \
+	@LIBINTL@
 
 esedb_test_tools_info_handle_SOURCES = \
 	../esedbtools/info_handle.c ../esedbtools/info_handle.h \
